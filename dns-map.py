@@ -22,40 +22,110 @@ import logging
 import csv
 from collections import defaultdict
 
+
+def get_top_domain(domain_name, count=3):
+    top_domain = ".".join(domain_name.split(".")[-count:])
+    return top_domain
+
+
+ignore_list_3 = {"s.sophosxl.net", "s3.amazonaws.com", "j.e5.sk", "fna.fbcdn.net", "xx.fbcdn.net",  
+              "p1.dsvml.net", "v1.dsvml.net", "swy.nhs.uk", "nflxvideo.net",
+              "nuid.imrworldwide.com", "metric.gstatic.com", "loris.llnwd.net", "init.cedexis-radar.net", 
+              "fls.doubleclick.net", "drip.trouter.io", "nrb.footprintdns.com", "avts.mcafee.com",
+              "ap.spotify.com", "aa.online-metrix.net"}
+
+ignore_list_2 = {"sophosxl.net", "amazonaws.com", "e5.sk", "fbcdn.net"  
+              "dsvml.net", "nhs.uk", "nflxvideo.net",
+              "imrworldwide.com", "gstatic.com", "llnwd.net", "cedexis-radar.net", 
+              "doubleclick.net", "trouter.io", "footprintdns.com", "mcafee.com",
+              "spotify.com", "online-metrix.net", "addr.arpa"}
+
+def is_ignored(domain_name):
+    top_domain = get_top_domain(domain_name, 2)
+    return top_domain in ignore_list_2
+
 def parse_data(csv_file):
+    '''
+    Processes ~400K lines/s
+    '''
     col_timestamp = 0
     col_org_id = 1
     col_policy = 5
     col_domain = 29
     orgs = defaultdict(lambda: defaultdict(int))
+    domains = defaultdict(int)
     csv_reader = csv.reader(csv_file, delimiter='\t')
+    rows = 0
+    ignored_domains = 0
     for row in csv_reader:
+        rows += 1
         policy = row[col_policy]
         if policy == "Abuse": continue;
         org_id = row[col_org_id]
         domain_name = row[col_domain]
+        if is_ignored(domain_name):
+            ignored_domains += 1
+            continue
+        domains[domain_name] += 1
         orgs[org_id][domain_name] += 1 
+    logger.debug("Handled {0} rows, collected {1} orgs, ignored {2} domains".format(rows, len(orgs), ignored_domains))
+    return orgs, domains
+
+def get_random_domains(orgs, domains):
+    top_domains = defaultdict(int)
+    for domain_name, _ in domains.items():
+        top_domain = get_top_domain(domain_name) 
+        top_domains[top_domain] += 1
         
-    logger.debug("{0}".format(orgs))
+    random_domains = []
+    for domain_name, count in domains.items():
+        top_domain = get_top_domain(domain_name) 
+        if count < 2 and top_domains[top_domain] > 30:
+            random_domains.append(domain_name)
+    return random_domains, top_domains
 
+def print_domains(orgs):
+    for _, domain_names in orgs.items():
+        for domain_name, count in domain_names.items():
+            if  count < 3:
+                logger.debug(domain_name)
+    
+def compare_domains(x, y):
+    x = get_top_domain(x)
+    y = get_top_domain(y)
+    if x < y:
+        return -1
+    elif y < x:
+        return 1
+    else:
+        return 0
+
+def order_by_top_domain(domains):
+    if type(domains) is dict:
+        domains = domains.values()
+    domains.sort(cmp=compare_domains) 
+    return domains 
+    
 if __name__ == '__main__':
-    try:
-        arguments = docopt(__doc__, version='dns-map')
+    arguments = docopt(__doc__, version='dns-map')
 
-        logging.basicConfig()    
-        logger = logging.getLogger('dns-map')
-        loglevel = arguments['--loglevel']
-        if loglevel is None:
-            loglevel = "DEBUG"
-        logger.setLevel(loglevel)
+    logging.basicConfig()    
+    logger = logging.getLogger('dns-map')
+    loglevel = arguments['--loglevel']
+    if loglevel is None:
+        loglevel = "DEBUG"
+    logger.setLevel(loglevel)
     
-        datafile = arguments['--datafile']
-        if datafile is None:
-            logger.error("I am missing a --datafile command line argument")
-            exit(1)
-            
-        with open(datafile) as csv_file:
-            parse_data(csv_file)
-    
-    except Exception as e:
-        print e        
+    datafile = arguments['--datafile']
+    if datafile is None:
+        logger.error("I am missing a --datafile command line argument")
+        exit(1)
+        
+    with open(datafile) as csv_file:
+        orgs, domains = parse_data(csv_file)
+        random_domains, top_domains = get_random_domains(orgs, domains)
+        logger.debug("Collected {0} unique domains, {1} random domains".format(len(domains), len(random_domains)))
+        random_domains_sorted = order_by_top_domain(random_domains)
+        for d in random_domains_sorted: 
+            #print(d)
+            pass
