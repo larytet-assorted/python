@@ -127,9 +127,11 @@ if __name__ == '__main__':
         
     with open(datafile) as csv_file:
         orgs, domains = parse_data(csv_file)
+        '''
         random_domains, top_domains = get_random_domains(orgs, domains)
         logger.debug("Collected {0} unique domains, {1} random domains".format(len(domains), len(random_domains)))
         random_domains_sorted = order_by_top_domain(random_domains)
         for k, v in ignore_list_2.iteritems(): 
             print(k, v)
             pass
+        '''
