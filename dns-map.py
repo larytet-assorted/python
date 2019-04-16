@@ -116,7 +116,11 @@ def parse_data(csv_file):
     csv_reader = csv.reader(csv_file, delimiter='\t')
     rows = 0
     ignored_domains = 0
+    columns = 0
     for row in csv_reader:
+        if columns != len(row):
+            columns = len(row)
+            logger.error("Columns {0}: {1}".format(columns, row[0]))
         rows += 1
         policy = row[col_policy]
         if policy == "Abuse": continue;
@@ -146,12 +150,15 @@ def get_random_domains(orgs, domains):
 def print_domains(orgs):
     orgs_list = order_by_value_len(orgs)
     for org in orgs_list:
+        total_hits = 0
         domain_names = orgs[org]
         print("{0} {1}".format(org, len(domain_names)))
         domain_list = order_by_count(domain_names)
         for domain_name in domain_list:
             count = domain_names[domain_name]
+            total_hits += count
             print("\t{0} {1}".format(domain_name, count))
+        print("\tTotal {0}".format(total_hits))
   
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='dns-map')
