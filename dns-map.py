@@ -84,6 +84,24 @@ def order_by_count(domains):
     domainsList = domains.keys()
     domainsList.sort(cmp=create_compare_domains_count(domains)) 
     return domainsList
+
+def create_compare_value_len(d):
+    def compare_value_len(x, y):
+        x = len(d[x])
+        y = len(d[y])
+        if x < y:
+            return 1
+        elif y < x:
+            return -1
+        else:
+            return 0
+        
+    return compare_value_len
+
+def order_by_value_len(orgs):
+    orgsList = orgs.keys()
+    orgsList.sort(cmp=create_compare_value_len(orgs)) 
+    return orgsList
     
 def parse_data(csv_file):
     '''
@@ -126,12 +144,14 @@ def get_random_domains(orgs, domains):
     return random_domains, top_domains
 
 def print_domains(orgs):
-    for org, domain_names in orgs.items():
-        logger.debug("{0}".format(org))
+    orgs_list = order_by_value_len(orgs)
+    for org in orgs_list:
+        domain_names = orgs[org]
+        print("{0} {1}".format(org, len(domain_names)))
         domain_list = order_by_count(domain_names)
         for domain_name in domain_list:
             count = domain_names[domain_name]
-            logger.debug("\t{0} {1}".format(domain_name, count))
+            print("\t{0} {1}".format(domain_name, count))
   
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='dns-map')
