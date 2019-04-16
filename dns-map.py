@@ -34,6 +34,9 @@ ignore_list_3 = {"s.sophosxl.net", "s3.amazonaws.com", "j.e5.sk", "fna.fbcdn.net
               "fls.doubleclick.net", "drip.trouter.io", "nrb.footprintdns.com", "avts.mcafee.com",
               "ap.spotify.com", "aa.online-metrix.net"}
 
+'''
+This list reduces number of unique domain names by 60%
+'''
 ignore_list_2 = {"gstatic.com":0, "sophosxl.net":0, "doubleclick.net":0, "amazonaws.com":0, "e5.sk":0, 
                  "fbcdn.net":0,  
                  "dsvml.net":0, "nhs.uk":0, "nflxvideo.net":0,
@@ -48,6 +51,40 @@ def is_ignored(domain_name):
         ignore_list_2[top_domain] += 1
     return res
 
+def compare_domains(x, y):
+    x = get_top_domain(x)
+    y = get_top_domain(y)
+    if x < y:
+        return -1
+    elif y < x:
+        return 1
+    else:
+        return 0
+
+def order_by_top_domain(domains):
+    if type(domains) is dict:
+        domains = domains.values()
+    domains.sort(cmp=compare_domains) 
+    return domains
+
+def create_compare_domains_count(domains):
+    def compare_domains_count(x, y):
+        x = domains[x]
+        y = domains[y]
+        if x < y:
+            return 1
+        elif y < x:
+            return -1
+        else:
+            return 0
+        
+    return compare_domains_count
+
+def order_by_count(domains):
+    domainsList = domains.keys()
+    domainsList.sort(cmp=create_compare_domains_count(domains)) 
+    return domainsList
+    
 def parse_data(csv_file):
     '''
     Processes ~400K lines/s
@@ -89,27 +126,13 @@ def get_random_domains(orgs, domains):
     return random_domains, top_domains
 
 def print_domains(orgs):
-    for _, domain_names in orgs.items():
-        for domain_name, count in domain_names.items():
-            if  count < 3:
-                logger.debug(domain_name)
-    
-def compare_domains(x, y):
-    x = get_top_domain(x)
-    y = get_top_domain(y)
-    if x < y:
-        return -1
-    elif y < x:
-        return 1
-    else:
-        return 0
-
-def order_by_top_domain(domains):
-    if type(domains) is dict:
-        domains = domains.values()
-    domains.sort(cmp=compare_domains) 
-    return domains 
-    
+    for org, domain_names in orgs.items():
+        logger.debug("{0}".format(org))
+        domain_list = order_by_count(domain_names)
+        for domain_name in domain_list:
+            count = domain_names[domain_name]
+            logger.debug("\t{0} {1}".format(domain_name, count))
+  
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='dns-map')
 
@@ -135,3 +158,4 @@ if __name__ == '__main__':
             print(k, v)
             pass
         '''
+        print_domains(orgs)
