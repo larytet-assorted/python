@@ -34,15 +34,19 @@ ignore_list_3 = {"s.sophosxl.net", "s3.amazonaws.com", "j.e5.sk", "fna.fbcdn.net
               "fls.doubleclick.net", "drip.trouter.io", "nrb.footprintdns.com", "avts.mcafee.com",
               "ap.spotify.com", "aa.online-metrix.net"}
 
-ignore_list_2 = {"sophosxl.net", "amazonaws.com", "e5.sk", "fbcdn.net"  
-              "dsvml.net", "nhs.uk", "nflxvideo.net",
-              "imrworldwide.com", "gstatic.com", "llnwd.net", "cedexis-radar.net", 
-              "doubleclick.net", "trouter.io", "footprintdns.com", "mcafee.com",
-              "spotify.com", "online-metrix.net", "addr.arpa"}
+ignore_list_2 = {"gstatic.com":0, "sophosxl.net":0, "doubleclick.net":0, "amazonaws.com":0, "e5.sk":0, 
+                 "fbcdn.net":0,  
+                 "dsvml.net":0, "nhs.uk":0, "nflxvideo.net":0,
+                 "imrworldwide.com":0, "llnwd.net":0, "cedexis-radar.net":0, 
+                 "trouter.io":0, "footprintdns.com":0, "mcafee.com":0,
+                 "spotify.com":0, "online-metrix.net":0, "addr.arpa":0}
 
 def is_ignored(domain_name):
     top_domain = get_top_domain(domain_name, 2)
-    return top_domain in ignore_list_2
+    res = top_domain in ignore_list_2
+    if res:
+        ignore_list_2[top_domain] += 1
+    return res
 
 def parse_data(csv_file):
     '''
@@ -126,6 +130,6 @@ if __name__ == '__main__':
         random_domains, top_domains = get_random_domains(orgs, domains)
         logger.debug("Collected {0} unique domains, {1} random domains".format(len(domains), len(random_domains)))
         random_domains_sorted = order_by_top_domain(random_domains)
-        for d in random_domains_sorted: 
-            #print(d)
+        for k, v in ignore_list_2.iteritems(): 
+            print(k, v)
             pass
