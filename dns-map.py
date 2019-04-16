@@ -7,12 +7,12 @@ Parse the DNS logs
  
 Usage:
   dns-map.py -h | --help
-  dns-map.py (-d <FILENAME> )
+  dns-map.py (-d <FILENAME> ) [-l <LOGLEVEL>]
    
 Options:
   -h --help                      Show this screen.
   -d --datafile=<FILENAME>       Data file to parse
-  --loglevel=<LEVEL>                  Log level
+  -l --loglevel=<LEVEL>             Log level
 """
 
 import struct 
@@ -35,6 +35,8 @@ def parse_data(csv_file):
         org_id = row[col_org_id]
         domain_name = row[col_domain]
         orgs[org_id][domain_name] += 1 
+        
+    logger.debug("{0}".format(orgs))
 
 if __name__ == '__main__':
     try:
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         loglevel = arguments['--loglevel']
         if loglevel is None:
             loglevel = "DEBUG"
-        logger.setLevel(getLevelName(loglevel))
+        logger.setLevel(loglevel)
     
         datafile = arguments['--datafile']
         if datafile is None:
