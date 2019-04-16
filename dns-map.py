@@ -19,7 +19,22 @@ import struct
 import re
 from docopt import docopt
 import logging
+import csv
+from collections import defaultdict
 
+def parse_data(csv_file):
+    col_timestamp = 0
+    col_org_id = 1
+    col_policy = 5
+    col_domain = 29
+    orgs = defaultdict(lambda: defaultdict(int))
+    csv_reader = csv.reader(csv_file, delimiter='\t')
+    for row in csv_reader:
+        policy = row[col_policy]
+        if policy == "Abuse": continue;
+        org_id = row[col_org_id]
+        domain_name = row[col_domain]
+        orgs[org_id][domain_name] += 1 
 
 if __name__ == '__main__':
     try:
@@ -36,7 +51,9 @@ if __name__ == '__main__':
         if datafile is None:
             logger.error("I am missing a --datafile command line argument")
             exit(1)
-        
+            
+        with open(datafile) as csv_file:
+            parse_data(csv_file)
     
     except Exception as e:
         print e        
