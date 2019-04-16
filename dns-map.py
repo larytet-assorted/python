@@ -42,7 +42,7 @@ ignore_list_2 = {"gstatic.com":0, "sophosxl.net":0, "doubleclick.net":0, "amazon
                  "dsvml.net":0, "nhs.uk":0, "nflxvideo.net":0,
                  "imrworldwide.com":0, "llnwd.net":0, "cedexis-radar.net":0, 
                  "trouter.io":0, "footprintdns.com":0, "mcafee.com":0,
-                 "spotify.com":0, "online-metrix.net":0, "addr.arpa":0}
+                 "spotify.com":0, "online-metrix.net":0, "addr.arpa":0, "sophos.com":0}
 
 def is_ignored(domain_name):
     top_domain = get_top_domain(domain_name, 2)
